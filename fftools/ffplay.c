@@ -336,6 +336,8 @@ static int decoder_reorder_pts = -1;
 static int autoexit;
 static int exit_on_keydown;
 static int exit_on_mousedown;
+static int omit_on_keydown;
+static int omit_on_mousedown;
 static int loop = 1;
 static int framedrop = -1;
 static int infinite_buffer = -1;
@@ -3274,6 +3276,10 @@ static void event_loop(VideoState *cur_stream)
         refresh_loop_wait_event(cur_stream, &event);
         switch (event.type) {
         case SDL_KEYDOWN:
+            if (omit_on_keydown) {
+                //do nothing
+                continue;
+            }
             if (exit_on_keydown || event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_q) {
                 do_exit(cur_stream);
                 break;
@@ -3386,6 +3392,10 @@ static void event_loop(VideoState *cur_stream)
             }
             break;
         case SDL_MOUSEBUTTONDOWN:
+            if (omit_on_mousedown) {
+                //do nothing
+                continue;
+            }
             if (exit_on_mousedown) {
                 do_exit(cur_stream);
                 break;
@@ -3404,6 +3414,10 @@ static void event_loop(VideoState *cur_stream)
             if (cursor_hidden) {
                 SDL_ShowCursor(1);
                 cursor_hidden = 0;
+            }
+            if (omit_on_mousedown) {
+                //do nothing
+                continue;
             }
             cursor_last_shown = av_gettime_relative();
             if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -3598,6 +3612,8 @@ static const OptionDef options[] = {
     { "lowres", OPT_INT | HAS_ARG | OPT_EXPERT, { &lowres }, "", "" },
     { "sync", HAS_ARG | OPT_EXPERT, { .func_arg = opt_sync }, "set audio-video sync. type (type=audio/video/ext)", "type" },
     { "autoexit", OPT_BOOL | OPT_EXPERT, { &autoexit }, "exit at the end", "" },
+    { "omitonkeydown", OPT_BOOL | OPT_EXPERT, { &omit_on_keydown }, "do absolutely nothing on key down", "" },
+    { "omitonmousedown", OPT_BOOL | OPT_EXPERT, { &omit_on_mousedown }, "do absolutely nothing on mouse down", "" },
     { "exitonkeydown", OPT_BOOL | OPT_EXPERT, { &exit_on_keydown }, "exit on key down", "" },
     { "exitonmousedown", OPT_BOOL | OPT_EXPERT, { &exit_on_mousedown }, "exit on mouse down", "" },
     { "loop", OPT_INT | HAS_ARG | OPT_EXPERT, { &loop }, "set number of times the playback shall be looped", "loop count" },
